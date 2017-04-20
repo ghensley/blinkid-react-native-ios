@@ -1,0 +1,17 @@
+{
+  "name": "blinkid-react-native-ios",
+  "version": "1.0.0",
+  "description": "Microblink's BlinkID React Native adapter for iOS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "microblink",
+    "react-native",
+    "blinkid",
+    "ios"
+  ],
+  "author": "Microblink",
+  "license": "MIT"
+}
