@@ -32,7 +32,7 @@ react-native link blinkid-react-native-ios
 
 ### Installation with CocoaPods
 
-[CocoaPods](http://cocoapods.org) is a dependency manager for Objective-C, which automates and simplifies the process of using 3rd-party libraries like BlinkID in your projects. See the ["Getting Started" guide for more information](https://github.com/BlinkID/blinkid-ios/wiki/Getting-started).
+[CocoaPods](http://cocoapods.org) is a dependency manager for Objective-C, which automates and simplifies the process of using 3rd-party libraries like BlinkID in your projects.
 
 - If you wish to use version v1.4.0 or above, you need to install [Git Large File Storage](https://git-lfs.github.com) by running these comamnds:
 ```shell
@@ -80,7 +80,7 @@ To use the module you call it in your index.ios.js file like the example below:
  */
 
 /**
- * Scan method returns scan fields in JSON format and image type defines type of the image that will be returned in scan result (image is returned as Base64 encoded JPEG)
+ * Scan method returns scan fields in JSON format and image (image is returned as Base64 encoded JPEG)
  *  "scanningResult.resultImage" : image is returned as Base64 encoded JPEG
  *  "scanningResult.resultList[0].fields" : all the fields in JSON format
  */
@@ -183,9 +183,9 @@ AppRegistry.registerComponent('BlinkIDReactNative', () => BlinkIDReactNative);
     + **MRTD** - scans Machine Readable Travel Document, contained in various IDs and passports
     + **EUDL** - scans the front of European driver's license
 	
-+ Scan method returns scan fields in JSON format and image type defines type of the image that will be returned in scan result (image is returned as Base64 encoded JPEG)
-	+ "scanningResult.resultImage" : image is returned as Base64 encoded JPEG
-	+ "scanningResult.resultList[0].fields" : all the fields in JSON format
++ Scan method returns scan fields in JSON format and image (image is returned as Base64 encoded JPEG)
+	+ **scanningResult.resultImage** : image is returned as Base64 encoded JPEG
+	+ **scanningResult.resultList[0].fields** : all the fields in JSON format
 
 + License parameter must be provided for **iOS**.
 
