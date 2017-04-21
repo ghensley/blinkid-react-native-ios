@@ -65,10 +65,8 @@ This repository contains **initReactNativeiOSDemoApp.sh** script which you can d
 ./initReactNativeiOSDemoApp.sh
 ```
 
-After some time, you will be asked the question in Terminal:
-```shell
-Do you want to replace ios/BlinkIDReactNative.xcodeproj/project.pbxproj? Answer y to replace, n to keep your version:
-```
+After some time, XCode will open your project. Go to **Targets -> General** and for each **Target** set your team.
+
 
 You **need** to say **y** and press enter to finish the installation of demo app.
 It will lunch iOS simulator with Demo application.

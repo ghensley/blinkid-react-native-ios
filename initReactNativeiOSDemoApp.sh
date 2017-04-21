@@ -154,7 +154,9 @@ const styles = StyleSheet.create({
 AppRegistry.registerComponent('BlinkIDReactNative', () => BlinkIDReactNative);
 EOF
 
-# upgrade 
-react-native upgrade
+# go to root iOS project
+cd ios
 
-react-native run-ios
+# open XCode with project
+echo "Please run only on device"
+open -a XCode BlinkIDReactNative.xcworkspace
