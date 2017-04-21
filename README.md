@@ -59,6 +59,20 @@ After you have added Podfile, install it by running this command:
 pod install
 ```
 
+## Demo
+This repository contains **initReactNativeiOSDemoApp.sh** script which you can download that will create React Native project and download all of its dependencies. Put that script in your wanted folder and run this command: 
+```shell
+./initReactNativeiOSDemoApp.sh
+```
+
+After some time, you will be asked the question in Terminal:
+```shell
+Do you want to replace ios/BlinkIDReactNative.xcodeproj/project.pbxproj? Answer y to replace, n to keep your version:
+```
+
+You **need** to say **y** and press enter to finish the installation of demo app.
+It will lunch iOS simulator with Demo application.
+
 ## Usage
 
 To use the module you call it in your index.ios.js file like the example below:
@@ -139,7 +153,7 @@ export default class BlinkIDReactNative extends Component {
           <Text style={styles.results}>Scan</Text>
         </TouchableHighlight>
         <Text style={styles.results}>{licenseKeyErrorMessage}</Text>
-        <Image source={require('./images/microblink-logo-white-SPECTRUM-portrait.png')} style={styles.imageLogo}/>
+        <Text style={styles.results}>MicroBlink Ltd</Text>
         <ScrollView
           automaticallyAdjustContentInsets={false}
           scrollEventThrottle={200}y> 
