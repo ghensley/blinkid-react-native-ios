@@ -67,10 +67,6 @@ This repository contains **initReactNativeiOSDemoApp.sh** script which you can d
 
 After some time, XCode will open your project. Go to **Targets -> General** and for each **Target** set your team.
 
-
-You **need** to say **y** and press enter to finish the installation of demo app.
-It will lunch iOS simulator with Demo application.
-
 ## Usage
 
 To use the module you call it in your index.ios.js file like the example below:
