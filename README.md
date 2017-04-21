@@ -44,7 +44,7 @@ git lfs install
 
 #### Podfile
 
-In your project, you will need to add MicroBlink.framework/MicroBlink framework. Go to your React Native iOS folder and create Podfile at the root of your project: 
+In your project, you will need to add MicroBlink.framework/MicroBlink framework. Go to your **./NameOfYourProject/ios** folder and create Podfile at the root of your iOS project: 
 
 ```ruby
 platform :ios, '8.0'
@@ -52,6 +52,11 @@ platform :ios, '8.0'
 target 'TargetName' do
   pod 'PPBlinkID', '~> 2.7.1'
 end
+```
+
+After you have added Podfile, install it by running this command:
+```shell
+pod install
 ```
 
 ## Usage
