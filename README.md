@@ -89,7 +89,7 @@ To use the module you call it in your index.ios.js file like the example below:
  *  "addMrtdRecognizer" : set to true if you want to add MRTD recognizer
  *  "addUsdlRecognizer" : set to true if you want to add USDL recognizer
  *  "shouldReturnCroppedDocument": if true, dewarped images in the recognition process will be saved
- *  "shouldReturnSuccessfulFrame": if true, image on which scan gave valid scaning result will be saved
+ *  "shouldReturnSuccessfulFrame": if true, image on which scan gave valid scanning result will be saved
  */
 
 /**
@@ -105,7 +105,6 @@ import {
   Text,
   View,
   TouchableHighlight,
-  Alert,
   Image,
   ScrollView
 } from 'react-native';
