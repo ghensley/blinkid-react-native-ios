@@ -1,4 +1,8 @@
-import { NativeModules, Platform } from 'react-native'
+'use strict'
+
+var reactNative = require('react-native');
+var { NativeModules, Platform } = reactNative;
+
 let { BlinkIDReactNative } = NativeModules
 if (Platform.OS === 'ios') {
   BlinkIDReactNative = addPromisesForAll(BlinkIDReactNative)
