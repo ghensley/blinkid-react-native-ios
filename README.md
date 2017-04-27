@@ -88,8 +88,9 @@ To use the module you call it in your index.ios.js file like the example below:
  *  "addEudlRecognizer" : set to true if you want to add EUDL recognizer
  *  "addMrtdRecognizer" : set to true if you want to add MRTD recognizer
  *  "addUsdlRecognizer" : set to true if you want to add USDL recognizer
+ *  "addDocumentFaceRecognizer" : set to true if you want to add Document Face recognizer
  *  "shouldReturnCroppedDocument": if true, dewarped images in the recognition process will be saved
- *  "shouldReturnSuccessfulFrame": if true, image on which scan gave valid scaning result will be saved
+ *  "shouldReturnSuccessfulFrame": if true, image on which scan gave valid scanning result will be saved
  */
 
 /**
@@ -97,6 +98,7 @@ To use the module you call it in your index.ios.js file like the example below:
  *  "scanningResult.resultImage" : image is returned as Base64 encoded JPEG
  *  "scanningResult.resultList[0].fields" : all the fields in JSON format
  */
+
 import React, { Component } from 'react';
 import { scan, setBlinkIDLicenseKey } from 'blinkid-react-native-ios';
 import {
@@ -105,10 +107,11 @@ import {
   Text,
   View,
   TouchableHighlight,
-  Alert,
   Image,
   ScrollView
 } from 'react-native';
+
+console.disableYellowBox = true;
 
 export default class BlinkIDReactNative extends Component {
     constructor(props) {
@@ -130,11 +133,13 @@ export default class BlinkIDReactNative extends Component {
       addEudlRecognizer: true,
       addMrtdRecognizer: false,
       addUsdlRecognizer: true,
+      addDocumentFaceRecognizer: true,
       shouldReturnCroppedDocument: true,
       shouldReturnSuccessfulFrame: true
     })
     if (scanningResult) {
        this.setState({ showResults: true, resultImage: scanningResult.resultImage, resultsList: JSON.stringify(scanningResult.resultList[0].fields)});
+       console.log(JSON.stringify(this.state.resultsList));
     }
   }
   render() {
@@ -190,6 +195,7 @@ const styles = StyleSheet.create({
 });
 
 AppRegistry.registerComponent('BlinkIDReactNative', () => BlinkIDReactNative);
+
 ```
 + Available scanners are:
     + **USDL**  - scans barcodes located on the back of US driver's license
