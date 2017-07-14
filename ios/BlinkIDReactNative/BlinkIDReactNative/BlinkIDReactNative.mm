@@ -10,6 +10,7 @@
 #import "BlinkIDReactNative.h"
 #import "RCTConvert.h"
 #import <MicroBlink/MicroBlink.h>
+#import "PPCustomIDCardOverlayViewController.h"
 
 @interface BlinkIDReactNative () <PPScanningDelegate>
 
@@ -81,8 +82,11 @@ RCT_EXPORT_METHOD(scan:(NSDictionary*)scanOptions callback:(RCTResponseSenderBlo
         return;
     }
     
+    PPCustomIDCardOverlayViewController* controller = [[PPCustomIDCardOverlayViewController alloc] init];
+    
     /** Allocate and present the scanning view controller */
-    UIViewController<PPScanningViewController>* scanningViewController = [PPViewControllerFactory cameraViewControllerWithDelegate:self coordinator:coordinator error:nil];
+    UIViewController<PPScanningViewController>* scanningViewController = [PPViewControllerFactory cameraViewControllerWithDelegate:self overlayViewController:controller coordinator:coordinator error:nil];
+    
     
     // allow rotation if VC is displayed as a modal view controller
     scanningViewController.autorotate = YES;
@@ -166,6 +170,10 @@ RCT_EXPORT_METHOD(dismiss) {
         [settings.scanSettings addRecognizerSettings:[self eudlRecognizerSettingsWithCountry:PPEudlCountryAny]];
     }
     
+    if ([self shouldUseDocumentFaceRecognizer]) {
+        [settings.scanSettings addRecognizerSettings:[self documentFaceRecognizerSettings]];
+    }
+    
     /** 4. Initialize the Scanning Coordinator object */
     
     PPCameraCoordinator *coordinator = [[PPCameraCoordinator alloc] initWithSettings:settings];
@@ -227,6 +235,10 @@ RCT_EXPORT_METHOD(dismiss) {
     return [[self.options valueForKey:@"addEudlRecognizer"] boolValue];
 }
 
+- (BOOL)shouldUseDocumentFaceRecognizer {
+    return [[self.options valueForKey:@"addDocumentFaceRecognizer"] boolValue];
+}
+
 #pragma mark - Utils
 
 - (void)setDictionary:(NSMutableDictionary *)dict withUsdlResult:(PPUsdlRecognizerResult *)usdlResult {
@@ -246,6 +258,11 @@ RCT_EXPORT_METHOD(dismiss) {
 - (void)setDictionary:(NSMutableDictionary *)dict withEudlRecognizerResult:(PPEudlRecognizerResult *)eudlResult {
     [dict setObject:[eudlResult getAllStringElements] forKey:@"fields"];
     [dict setObject:@"EUDL result" forKey:@"resultType"];
+}
+
+- (void)setDictionary:(NSMutableDictionary *)dict withDocumentFaceResult:(PPDocumentFaceRecognizerResult *)documentFaceResult {
+    [dict setObject:[documentFaceResult getAllStringElements] forKey:@"fields"];
+    [dict setObject:@"DocumentFace result" forKey:@"resultType"];
 }
 
 - (void)returnResults:(NSArray *)results cancelled:(BOOL)cancelled {
@@ -280,6 +297,15 @@ RCT_EXPORT_METHOD(dismiss) {
             
             NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
             [self setDictionary:dict withEudlRecognizerResult:eudlDecoderResult];
+            
+            [resultArray addObject:dict];
+        }
+        
+        if ([result isKindOfClass:[PPDocumentFaceRecognizerResult class]]) {
+            PPDocumentFaceRecognizerResult *documentFaceResult = (PPDocumentFaceRecognizerResult *)result;
+            
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+            [self setDictionary:dict withDocumentFaceResult:documentFaceResult];
             
             [resultArray addObject:dict];
         }
@@ -420,4 +446,23 @@ RCT_EXPORT_METHOD(dismiss) {
     
     return usdlRecognizerSettings;
 }
+
+- (PPDocumentFaceRecognizerSettings *)documentFaceRecognizerSettings {
+    
+    PPDocumentFaceRecognizerSettings *documentFaceReconizerSettings = [[PPDocumentFaceRecognizerSettings alloc] init];
+    
+    // This property is useful if you're at the same time obtaining Dewarped image metadata, since it allows you to obtain dewarped and
+    // cropped
+    // images of MRTD documents. Dewarped images are returned to scanningViewController:didOutputMetadata: callback,
+    // as PPImageMetadata objects with name @"MRTD"
+    
+    if (self.shouldReturnCroppedDocument) {
+        documentFaceReconizerSettings.returnFullDocument = YES;
+    } else {
+        documentFaceReconizerSettings.returnFullDocument = NO;
+    }
+    
+    return documentFaceReconizerSettings;
+}
+
 @end
