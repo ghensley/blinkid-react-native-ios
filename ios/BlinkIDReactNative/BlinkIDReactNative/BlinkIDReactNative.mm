@@ -93,8 +93,9 @@ RCT_EXPORT_METHOD(scan:(NSDictionary*)scanOptions callback:(RCTResponseSenderBlo
     scanningViewController.supportedOrientations = UIInterfaceOrientationMaskAll;
     
     UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
-    [rootViewController presentViewController:scanningViewController animated:YES completion:nil];
-    
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        [rootViewController presentViewController:scanningViewController animated:YES completion:nil];
+    });
 }
 
 RCT_EXPORT_METHOD(dismiss) {
