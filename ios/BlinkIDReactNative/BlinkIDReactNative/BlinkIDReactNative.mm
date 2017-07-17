@@ -28,6 +28,10 @@
 
 @property (nonatomic) BOOL shouldReturnSuccessfulFrame;
 
+@property (nonatomic) CGFloat boxRatio;
+
+@property (nonatomic, strong) NSString* tooltipText;
+
 @end
 
 
@@ -83,7 +87,8 @@ RCT_EXPORT_METHOD(scan:(NSDictionary*)scanOptions callback:(RCTResponseSenderBlo
     }
     
     PPCustomIDCardOverlayViewController* controller = [[PPCustomIDCardOverlayViewController alloc] init];
-    
+    [controller setBoxRatio: self.boxRatio];
+    [controller setTooltip: self.tooltipText];
     /** Allocate and present the scanning view controller */
     UIViewController<PPScanningViewController>* scanningViewController = [PPViewControllerFactory cameraViewControllerWithDelegate:self overlayViewController:controller coordinator:coordinator error:nil];
     
@@ -128,6 +133,17 @@ RCT_EXPORT_METHOD(dismiss) {
     self.shouldReturnCroppedDocument = NO;
     self.shouldReturnSuccessfulFrame = NO;
     
+    // defaults
+    self.tooltipText = @"Scan the card";
+    self.boxRatio = 85.60 / 53.98;
+    
+    if ([self.options valueForKey:@"tooltipText"]) {
+        self.tooltipText = [self.options valueForKey:@"tooltipText"];
+    }
+    if ([[self.options valueForKey:@"boxRatio"] floatValue]){
+        self.boxRatio = [[self.options valueForKey:@"boxRatio"] floatValue];
+    }
+    
     if ([[self.options valueForKey:@"shouldReturnSuccessfulFrame"] boolValue]) {
         settings.metadataSettings.successfulFrame = YES;
         self.shouldReturnSuccessfulFrame = YES;
@@ -137,6 +153,7 @@ RCT_EXPORT_METHOD(dismiss) {
         settings.metadataSettings.dewarpedImage = YES;
         self.shouldReturnCroppedDocument = YES;
     }
+    
     
     settings.cameraSettings.cameraType = self.cameraType;
     
@@ -169,6 +186,10 @@ RCT_EXPORT_METHOD(dismiss) {
     
     if ([self shouldUseEudlRecognizer]) {
         [settings.scanSettings addRecognizerSettings:[self eudlRecognizerSettingsWithCountry:PPEudlCountryAny]];
+    }
+    
+    if ([self shouldUseDocumentFaceRecognizer]) {
+        [settings.scanSettings addRecognizerSettings:[self documentFaceRecognizerSettings]];
     }
     
     if ([self shouldUseDocumentFaceRecognizer]) {

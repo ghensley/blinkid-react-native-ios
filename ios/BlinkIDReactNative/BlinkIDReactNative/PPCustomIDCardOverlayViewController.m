@@ -8,11 +8,20 @@
 #import <MicroBlink/MicroBlink.h>
 #import "PPCustomIDCardOverlayViewController.h"
 
+
 @implementation PPCustomIDCardOverlayViewController : PPIDCardOverlayViewController
+
+- (void)setTooltip: (NSString*) tooltipText {
+    self.tooltipText = tooltipText;
+}
+
+- (void)setRatio: (CGFloat) boxRatio {
+    self.boxRatio = boxRatio;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.idCardSubview.tooltipLabel.text = @"Scan the barcode";
-    self.idCardSubview.viewfinderWidthToHeightRatio = 85.60 / 30;
+    self.idCardSubview.tooltipLabel.text = self.tooltipText;
+    self.idCardSubview.viewfinderWidthToHeightRatio = self.boxRatio;
 }
 @end

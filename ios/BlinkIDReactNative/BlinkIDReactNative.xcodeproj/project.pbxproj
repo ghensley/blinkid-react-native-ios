@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		666AC6F11F196A4200994177 /* PPCustomIDCardOverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 666AC6F01F196A4200994177 /* PPCustomIDCardOverlayViewController.m */; };
 		A27CCA301E9E57A500BED675 /* BlinkIDReactNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = A27CCA2F1E9E57A500BED675 /* BlinkIDReactNative.mm */; };
 		A27CCA311E9E57A500BED675 /* BlinkIDReactNative.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = A27CCA2E1E9E57A500BED675 /* BlinkIDReactNative.h */; };
 		A27CCA401E9E5D8D00BED675 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A27CCA3A1E9E57CF00BED675 /* Accelerate.framework */; };
@@ -29,6 +30,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		666AC6EF1F196A4200994177 /* PPCustomIDCardOverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PPCustomIDCardOverlayViewController.h; sourceTree = "<group>"; };
+		666AC6F01F196A4200994177 /* PPCustomIDCardOverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PPCustomIDCardOverlayViewController.m; sourceTree = "<group>"; };
 		A27CCA2B1E9E57A500BED675 /* libBlinkIDReactNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBlinkIDReactNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		A27CCA2E1E9E57A500BED675 /* BlinkIDReactNative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlinkIDReactNative.h; sourceTree = "<group>"; };
 		A27CCA2F1E9E57A500BED675 /* BlinkIDReactNative.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = BlinkIDReactNative.mm; sourceTree = "<group>"; };
@@ -74,6 +77,8 @@
 		A27CCA2D1E9E57A500BED675 /* BlinkIDReactNative */ = {
 			isa = PBXGroup;
 			children = (
+				666AC6EF1F196A4200994177 /* PPCustomIDCardOverlayViewController.h */,
+				666AC6F01F196A4200994177 /* PPCustomIDCardOverlayViewController.m */,
 				A27CCA2E1E9E57A500BED675 /* BlinkIDReactNative.h */,
 				A27CCA2F1E9E57A500BED675 /* BlinkIDReactNative.mm */,
 			);
@@ -151,6 +156,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A27CCA301E9E57A500BED675 /* BlinkIDReactNative.mm in Sources */,
+				666AC6F11F196A4200994177 /* PPCustomIDCardOverlayViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

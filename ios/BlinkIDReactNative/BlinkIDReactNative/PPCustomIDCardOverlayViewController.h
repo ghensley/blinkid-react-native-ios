@@ -13,4 +13,10 @@
 
 @interface PPCustomIDCardOverlayViewController : PPIDCardOverlayViewController
 
+- (void)setTooltip: (NSString*) tooltipText;
+- (void)setBoxRatio: (CGFloat) boxRatio;
+
+@property (nonatomic) CGFloat boxRatio;
+@property (nonatomic, strong) NSString *tooltipText;
+
 @end
