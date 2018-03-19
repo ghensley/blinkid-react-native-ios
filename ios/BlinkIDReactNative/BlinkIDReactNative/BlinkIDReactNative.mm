@@ -8,32 +8,89 @@
 
 #import <Foundation/Foundation.h>
 #import "BlinkIDReactNative.h"
-#import "RCTConvert.h"
+#import <React/RCTConvert.h>
 #import <MicroBlink/MicroBlink.h>
-#import "PPCustomIDCardOverlayViewController.h"
+#import "USDLFrontViewController.h"
+#import "USDLBackViewController.h"
 
 @interface BlinkIDReactNative () <PPScanningDelegate>
+
+@property (nonatomic, assign) BOOL enableBeep;
 
 @property (nonatomic) PPCameraType cameraType;
 
 @property (nonatomic, strong) NSDictionary* options;
 
-@property (nonatomic, strong) RCTResponseSenderBlock callback;
+@property (nonatomic, strong) RCTPromiseResolveBlock promiseResolve;
+
+@property (nonatomic, strong) RCTPromiseRejectBlock promiseReject;
 
 @property (nonatomic, strong) NSString* licenseKey;
 
-@property (nonatomic) PPImageMetadata *lastImageMetadata;
+@property (nonatomic) UIImage *scannedImageDewarped;
 
-@property (nonatomic) BOOL shouldReturnCroppedDocument;
+@property (nonatomic) UIImage *scannedImageSuccesful;
 
-@property (nonatomic) BOOL shouldReturnSuccessfulFrame;
+@property (nonatomic) UIImage *scannedImageFace;
 
-@property (nonatomic) CGFloat boxRatio;
+@property (nonatomic, strong) NSArray *recognizers;
 
-@property (nonatomic, strong) NSString* tooltipText;
+@property (nonatomic) BOOL shouldReturnCroppedImage;
+
+@property (nonatomic) BOOL shouldReturnSuccessfulImage;
+
+@property (nonatomic) BOOL shouldReturnFaceImage;
 
 @end
 
+// promise reject message codes
+static NSString* const kErrorLicenseKeyDoesNotExists = @"ERROR_LICENSE_KEY_DOES_NOT_EXISTS";
+static NSString* const kErrorCoordniatorDoesNotExists = @"COORDINATOR_DOES_NOT_EXISTS";
+static NSString* const kStatusScanCanceled = @"STATUS_SCAN_CANCELED";
+static NSString* const kStatusScanSkipped = @"STATUS_SCAN_SKIPPED";
+
+// js keys for scanning options
+static NSString* const kOptionShowBackButton = @"showBackButton";
+static NSString* const kOptionShowFrontOverlay = @"showFrontOverlay";
+static NSString* const kOptionEnableBeepKey = @"enableBeep";
+static NSString* const kOptionUseFrontCameraJsKey = @"useFrontCamera";
+static NSString* const kOptionReturnCroppedImageJsKey = @"shouldReturnCroppedImage";
+static NSString* const kOptionShouldReturnSuccessfulImageJsKey = @"shouldReturnSuccessfulImage";
+static NSString* const kOptionReturnFaceImageJsKey = @"shouldReturnFaceImage";
+static NSString* const kRecognizersArrayJsKey = @"recognizers";
+
+// js keys for recognizer types
+static NSString* const kRecognizerMRTDJsKey = @"RECOGNIZER_MRTD";
+static NSString* const kRecognizerUSDLJsKey = @"RECOGNIZER_USDL";
+static NSString* const kRecognizerEUDLJsKey = @"RECOGNIZER_EUDL";
+static NSString* const kRecognizerMyKadJsKey = @"RECOGNIZER_MYKAD";
+static NSString* const kRecognizerDocumentFaceJsKey = @"RECOGNIZER_DOCUMENT_FACE";
+static NSString* const kRecognizerPDF417JsKey = @"RECOGNIZER_PDF417";
+
+// js result keys
+static NSString* const kResultList = @"resultList";
+static NSString* const kResultImageCropped = @"resultImageCropped";
+static NSString* const kResultImageSuccessful = @"resultImageSuccessful";
+static NSString* const kResultImageFace = @"resultImageFace";
+static NSString* const kResultType = @"resultType";
+static NSString* const kFields = @"fields";
+
+// result values for resultType
+static NSString* const kMRTDResultType = @"MRTD result";
+static NSString* const kUSDLResultType = @"USDL result";
+static NSString* const kEUDLResultType = @"EUDL result";
+static NSString* const kMyKadResultType = @"MyKad result";
+static NSString* const kDocumentFaceResultType = @"DocumentFace result";
+static NSString* const kPDF417ResultType = @"PDF417 result";
+
+// recognizer result keys
+static NSString* const kRaw = @"raw";
+static NSString* const kMRTDDateOfBirth = @"DateOfBirth";
+static NSString* const kMRTDDateOExpiry = @"DateOfExpiry";
+static NSString* const kMyKadBirthDate = @"ownerBirthDate";
+
+// NSError Domain
+static NSString* const MBErrorDomain = @"microblink.error";
 
 @implementation BlinkIDReactNative
 
@@ -45,35 +102,54 @@ RCT_EXPORT_MODULE();
     return self;
 }
 
-
 - (NSDictionary *)constantsToExport {
     NSMutableDictionary* constants = [NSMutableDictionary dictionary];
+    [constants setObject:@"RECOGNIZER_MRTD" forKey:kRecognizerMRTDJsKey];
+    [constants setObject:@"RECOGNIZER_USDL" forKey:kRecognizerUSDLJsKey];
+    [constants setObject:@"RECOGNIZER_EUDL" forKey:kRecognizerEUDLJsKey];
+    [constants setObject:@"RECOGNIZER_DOCUMENT_FACE" forKey:kRecognizerDocumentFaceJsKey];
+    [constants setObject:@"RECOGNIZER_MYKAD" forKey:kRecognizerMyKadJsKey];
+    [constants setObject:@"RECOGNIZER_PDF417" forKey:kRecognizerPDF417JsKey];
+    [constants setObject:@"MRTD result" forKey:kMRTDResultType];
+    [constants setObject:@"USDL result" forKey:kUSDLResultType];
+    [constants setObject:@"EUDL result" forKey:kEUDLResultType];
+    [constants setObject:@"MyKad result" forKey:kMyKadResultType];
+    [constants setObject:@"PDF417 result" forKey:kPDF417ResultType];
+    [constants setObject:@"DocumentFace result" forKey:kDocumentFaceResultType];
     return [NSDictionary dictionaryWithDictionary:constants];
 }
 
-
-RCT_EXPORT_METHOD(setBlinkIDLicenseKey:(NSString*)key callback:(RCTResponseSenderBlock)callback) {
-    if (key.length == 0 && callback) {
-        callback(@[@"License key needed"]);
-    }
+RCT_REMAP_METHOD(scan, scan:(NSString *)key withOptions:(NSDictionary*)scanOptions resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+    dispatch_sync(dispatch_get_main_queue(), ^{
+    if (key.length == 0) {
+        NSDictionary *userInfo = @{
+                                   NSLocalizedDescriptionKey: NSLocalizedString(@"Operation was unsuccessful.", nil),
+                                   NSLocalizedFailureReasonErrorKey: NSLocalizedString(@"License key missing.", nil),
+                                   NSLocalizedRecoverySuggestionErrorKey: NSLocalizedString(@"Have you checked your license key?", nil)
+                                   };
+        NSError *error = [NSError errorWithDomain:MBErrorDomain
+                                             code:-57
+                                         userInfo:userInfo];
+        reject(kErrorLicenseKeyDoesNotExists, @"License key does not exists", error);
+        return;    }
     else {
         self.licenseKey = key;
     }
-
-}
-
-
-RCT_EXPORT_METHOD(scan:(NSDictionary*)scanOptions callback:(RCTResponseSenderBlock)callback) {
     
-    BOOL isFrontCamera = [[scanOptions valueForKey:@"isFrontCamera"] boolValue];
+    BOOL isFrontCamera = [[scanOptions valueForKey:kOptionUseFrontCameraJsKey] boolValue];
     if (!isFrontCamera) {
         self.cameraType = PPCameraTypeBack;
     } else {
         self.cameraType = PPCameraTypeFront;
     }
+
+    self.enableBeep = [[scanOptions valueForKey:kOptionEnableBeepKey] boolValue];
+
+    self.promiseResolve = resolve;
+    self.promiseReject  = reject;
     
-    self.callback = callback;
     self.options = scanOptions;
+    self.recognizers = [scanOptions valueForKey:kRecognizersArrayJsKey];
     
     /** Instantiate the scanning coordinator */
     NSError *error;
@@ -81,32 +157,39 @@ RCT_EXPORT_METHOD(scan:(NSDictionary*)scanOptions callback:(RCTResponseSenderBlo
     
     /** If scanning isn't supported, present an error */
     if (coordinator == nil) {
-        callback(@[[error localizedDescription]]);
-
+        NSDictionary *userInfo = @{
+                                   NSLocalizedDescriptionKey: NSLocalizedString(@"Operation was unsuccessful.", nil),
+                                   NSLocalizedFailureReasonErrorKey: NSLocalizedString(@"Camera coordinator is nil.", nil),
+                                   NSLocalizedRecoverySuggestionErrorKey: NSLocalizedString(@"Have you checked creation of camera coordinator?", nil)
+                                   };
+        NSError *error = [NSError errorWithDomain:MBErrorDomain
+                                             code:-57
+                                         userInfo:userInfo];
+        reject(kErrorCoordniatorDoesNotExists, @"Coordinator does not exists", error);
+        
         return;
     }
     
-    PPCustomIDCardOverlayViewController* controller = [[PPCustomIDCardOverlayViewController alloc] init];
-    [controller setBoxRatio: self.boxRatio];
-    [controller setTooltip: self.tooltipText];
     /** Allocate and present the scanning view controller */
-    UIViewController<PPScanningViewController>* scanningViewController = [PPViewControllerFactory cameraViewControllerWithDelegate:self overlayViewController:controller coordinator:coordinator error:nil];
     
     
-    // allow rotation if VC is displayed as a modal view controller
-    scanningViewController.autorotate = YES;
-    scanningViewController.supportedOrientations = UIInterfaceOrientationMaskAll;
-    
-    UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
-    dispatch_sync(dispatch_get_main_queue(), ^{
+    if ([[scanOptions valueForKey:kOptionShowFrontOverlay] boolValue]) {
+        USDLFrontViewController* controller = [[USDLFrontViewController alloc] initWithNibName:@"USDLFrontOverlay" bundle:nil  ];
+        [controller setBackButton: [[scanOptions valueForKey:kOptionShowBackButton] boolValue]];
+        UIViewController *scanningViewController = [PPViewControllerFactory cameraViewControllerWithDelegate:self overlayViewController:controller coordinator:coordinator error:nil];
+        
+        UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
         [rootViewController presentViewController:scanningViewController animated:YES completion:nil];
-    });
+    }
+    else {
+        USDLBackViewController* controller = [[USDLBackViewController alloc] initWithNibName:@"USDLBackOverlay" bundle:nil];
+        UIViewController *scanningViewController = [PPViewControllerFactory cameraViewControllerWithDelegate:self overlayViewController:controller coordinator:coordinator error:nil];
+        
+        UIViewController *rootViewController = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+        [rootViewController presentViewController:scanningViewController animated:YES completion:nil];
+    }
+});
 }
-
-RCT_EXPORT_METHOD(dismiss) {
-    [self dismissScanningView];
-}
-
 
 #pragma mark - BlinkID specifics
 
@@ -130,35 +213,30 @@ RCT_EXPORT_METHOD(dismiss) {
     // Initialize the scanner settings object. This initialize settings with all default values.
     PPSettings *settings = [[PPSettings alloc] init];
     
-    self.shouldReturnCroppedDocument = NO;
-    self.shouldReturnSuccessfulFrame = NO;
-    
-    // defaults
-    self.tooltipText = @"Scan the card";
-    self.boxRatio = 85.60 / 53.98;
-    
-    if ([self.options valueForKey:@"tooltipText"]) {
-        self.tooltipText = [self.options valueForKey:@"tooltipText"];
-    }
-    if ([[self.options valueForKey:@"boxRatio"] floatValue]){
-        self.boxRatio = [[self.options valueForKey:@"boxRatio"] floatValue];
-    }
-    
-    if ([[self.options valueForKey:@"shouldReturnSuccessfulFrame"] boolValue]) {
+    self.shouldReturnCroppedImage = NO;
+    self.shouldReturnSuccessfulImage = NO;
+    self.shouldReturnFaceImage = NO;
+
+    if ([[self.options valueForKey:kOptionShouldReturnSuccessfulImageJsKey] boolValue]) {
         settings.metadataSettings.successfulFrame = YES;
-        self.shouldReturnSuccessfulFrame = YES;
+        self.shouldReturnSuccessfulImage = YES;
     }
     
-    if ([[self.options valueForKey:@"shouldReturnCroppedDocument"] boolValue]) {
+    if ([[self.options valueForKey:kOptionReturnCroppedImageJsKey] boolValue]) {
         settings.metadataSettings.dewarpedImage = YES;
-        self.shouldReturnCroppedDocument = YES;
+        self.shouldReturnCroppedImage = YES;
     }
-    
-    
+
+    if ([[self.options valueForKey:kOptionReturnFaceImageJsKey] boolValue]) {
+        settings.metadataSettings.dewarpedImage = YES;
+        self.shouldReturnFaceImage = YES;
+    }
+
     settings.cameraSettings.cameraType = self.cameraType;
     
-    self.lastImageMetadata = nil;
-
+    self.scannedImageDewarped = nil;
+    self.scannedImageSuccesful = nil;
+    self.scannedImageFace = nil;
     
     // Do not timeout
     settings.scanSettings.partialRecognitionTimeout = 0.0f;
@@ -192,10 +270,10 @@ RCT_EXPORT_METHOD(dismiss) {
         [settings.scanSettings addRecognizerSettings:[self documentFaceRecognizerSettings]];
     }
     
-    if ([self shouldUseDocumentFaceRecognizer]) {
-        [settings.scanSettings addRecognizerSettings:[self documentFaceRecognizerSettings]];
+    if ([self shouldUsePDF417Recognizer]) {
+        [settings.scanSettings addRecognizerSettings:[self pdf417RecognizerSettings]];
     }
-    
+
     /** 4. Initialize the Scanning Coordinator object */
     
     PPCameraCoordinator *coordinator = [[PPCameraCoordinator alloc] initWithSettings:settings];
@@ -212,17 +290,42 @@ RCT_EXPORT_METHOD(dismiss) {
 - (void)scanningViewController:(UIViewController<PPScanningViewController> *)scanningViewController
                   didFindError:(NSError *)error {
     // Can be ignored. See description of the method
+    if (self.promiseReject) {
+        NSError *error = [NSError errorWithDomain:MBErrorDomain
+                                             code:-57
+                                         userInfo:nil];
+        self.promiseReject(kStatusScanSkipped, @"Scanning has been skipped", error);
+    }
+    
+    [self dismissScanningView];
 }
 
 - (void)scanningViewControllerDidClose:(UIViewController<PPScanningViewController> *)scanningViewController {
-        // As scanning view controller is presented full screen and modally, dismiss it
-    [scanningViewController dismissViewControllerAnimated:YES completion:nil];
+    // As scanning view controller is presented full screen and modally, dismiss it
+    if (self.promiseReject) {
+        NSError *error = [NSError errorWithDomain:MBErrorDomain
+                                             code:-58
+                                         userInfo:nil];
+        self.promiseReject(kStatusScanCanceled, @"Scanning has been canceled", error);
+    }
+
+    [self dismissScanningView];
 }
 
 -(void)scanningViewController:(UIViewController<PPScanningViewController> *)scanningViewController didOutputMetadata:(PPMetadata *)metadata {
     // Check if metadata obtained is image. You can set what type of image is outputed by setting different properties of PPMetadataSettings (currently, dewarpedImage is set at line 207)
     if ([metadata isKindOfClass:[PPImageMetadata class]]) {
-        self.lastImageMetadata = (PPImageMetadata *)metadata;
+        PPImageMetadata *imageMetadata = (PPImageMetadata *)metadata;
+        PPImageMetadataType imageMetadataType = imageMetadata.imageType;
+        if (imageMetadataType == PPImageMetadataTypeDewarpedImage && self.shouldReturnFaceImage == YES && [imageMetadata.name isEqualToString:[PPDocumentFaceRecognizerSettings ID_FACE]]) {
+            self.scannedImageFace = imageMetadata.image;
+        }
+        else if (imageMetadataType == PPImageMetadataTypeDewarpedImage && self.shouldReturnCroppedImage == YES) {
+            self.scannedImageDewarped = imageMetadata.image;
+        }
+        else if (imageMetadataType == PPImageMetadataTypeSuccessfulFrame && self.shouldReturnSuccessfulImage == YES) {
+            self.scannedImageSuccesful = imageMetadata.image;
+        }
     }
 }
 
@@ -232,8 +335,12 @@ RCT_EXPORT_METHOD(dismiss) {
     // Here you process scanning results. Scanning results are given in the array of PPRecognizerResult objects.
     // first, pause scanning until we process all the results
     [scanningViewController pauseScanning];
-    
-    [self returnResults:results cancelled:(results == nil)];
+
+    if (self.enableBeep) {
+        [scanningViewController playScanSuccesSound];
+    }
+
+    [self returnResults:results];
 }
 
 - (void)scanningViewController:(UIViewController<PPScanningViewController> *)scanningViewController didFinishDetectionWithResult:(PPDetectorResult *)result {
@@ -246,51 +353,63 @@ RCT_EXPORT_METHOD(dismiss) {
 
 
 - (BOOL)shouldUseUsdlRecognizer {
-    return [[self.options valueForKey:@"addUsdlRecognizer"] boolValue];
+    return [self.recognizers containsObject:kRecognizerUSDLJsKey];
 }
 
 - (BOOL)shouldUseMrtdRecognizer {
-    return [[self.options valueForKey:@"addMrtdRecognizer"] boolValue];
+    return [self.recognizers containsObject:kRecognizerMRTDJsKey];
 }
 
 - (BOOL)shouldUseEudlRecognizer {
-    return [[self.options valueForKey:@"addEudlRecognizer"] boolValue];
+    return [self.recognizers containsObject:kRecognizerEUDLJsKey];
 }
 
 - (BOOL)shouldUseDocumentFaceRecognizer {
-    return [[self.options valueForKey:@"addDocumentFaceRecognizer"] boolValue];
+    return [self.recognizers containsObject:kRecognizerDocumentFaceJsKey];
+}
+
+- (BOOL)shouldUseMyKadRecognizer {
+    return [self.recognizers containsObject:kRecognizerMyKadJsKey];
+}
+
+- (BOOL)shouldUsePDF417Recognizer {
+    return [self.recognizers containsObject:kRecognizerPDF417JsKey];
 }
 
 #pragma mark - Utils
 
 - (void)setDictionary:(NSMutableDictionary *)dict withUsdlResult:(PPUsdlRecognizerResult *)usdlResult {
-    [dict setObject:[usdlResult getAllStringElements] forKey:@"fields"];
-    [dict setObject:@"USDL result" forKey:@"resultType"];
+    [dict setObject:[usdlResult getAllStringElements] forKey:kFields];
+    [dict setObject:kUSDLResultType forKey:kResultType];
 }
 
 - (void)setDictionary:(NSMutableDictionary *)dict withMrtdRecognizerResult:(PPMrtdRecognizerResult *)mrtdResult {
     NSMutableDictionary *stringElements = [NSMutableDictionary dictionaryWithDictionary:[mrtdResult getAllStringElements]];
-    [stringElements setObject:[mrtdResult rawDateOfBirth] forKey:@"DateOfBirth"];
-    [stringElements setObject:[mrtdResult rawDateOfExpiry] forKey:@"DateOfExpiry"];
-    [dict setObject:stringElements forKey:@"fields"];
-    [dict setObject:[mrtdResult mrzText] forKey:@"raw"];
-    [dict setObject:@"MRTD result" forKey:@"resultType"];
+    [stringElements setObject:[mrtdResult rawDateOfBirth] forKey:kMRTDDateOfBirth];
+    [stringElements setObject:[mrtdResult rawDateOfExpiry] forKey:kMRTDDateOExpiry];
+    [dict setObject:stringElements forKey:kFields];
+    [dict setObject:[mrtdResult mrzText] forKey:kRaw];
+    [dict setObject:kMRTDResultType forKey:kResultType];
 }
 
 - (void)setDictionary:(NSMutableDictionary *)dict withEudlRecognizerResult:(PPEudlRecognizerResult *)eudlResult {
-    [dict setObject:[eudlResult getAllStringElements] forKey:@"fields"];
-    [dict setObject:@"EUDL result" forKey:@"resultType"];
+    [dict setObject:[eudlResult getAllStringElements] forKey:kFields];
+    [dict setObject:kEUDLResultType forKey:kResultType];
 }
 
 - (void)setDictionary:(NSMutableDictionary *)dict withDocumentFaceResult:(PPDocumentFaceRecognizerResult *)documentFaceResult {
-    [dict setObject:[documentFaceResult getAllStringElements] forKey:@"fields"];
-    [dict setObject:@"DocumentFace result" forKey:@"resultType"];
+    [dict setObject:[documentFaceResult getAllStringElements] forKey:kFields];
+    [dict setObject:kDocumentFaceResultType forKey:kResultType];
 }
 
-- (void)returnResults:(NSArray *)results cancelled:(BOOL)cancelled {
+- (void)setDictionary:(NSMutableDictionary *)dict withPdf417Result:(PPPdf417RecognizerResult *)pdf417Result {
+    [dict setObject:[pdf417Result getAllStringElements] forKey:kFields];
+    [dict setObject:kPDF417ResultType forKey:kResultType];
+}
+
+- (void)returnResults:(NSArray *)results{
     NSMutableDictionary *resultDict = [[NSMutableDictionary alloc] init];
-    [resultDict setObject:[NSNumber numberWithInt:(cancelled ? 1 : 0)] forKey:@"cancelled"];
-    
+
     NSMutableArray *resultArray = [[NSMutableArray alloc] init];
     
     for (PPRecognizerResult *result in results) {
@@ -303,7 +422,6 @@ RCT_EXPORT_METHOD(dismiss) {
             
             [resultArray addObject:dict];
         }
-        
         
         if ([result isKindOfClass:[PPMrtdRecognizerResult class]]) {
             PPMrtdRecognizerResult *mrtdDecoderResult = (PPMrtdRecognizerResult *)result;
@@ -331,28 +449,54 @@ RCT_EXPORT_METHOD(dismiss) {
             
             [resultArray addObject:dict];
         }
-    }
-    
-    if ([resultArray count] > 0) {
-        [resultDict setObject:resultArray forKey:@"resultList"];
-    }
-    
-    if (!cancelled) {
-        UIImage *image = self.lastImageMetadata.image;
-        if (image) {
-            NSData *imageData = UIImageJPEGRepresentation(self.lastImageMetadata.image, 0.9f);
-            NSString *encodedImage = [NSString stringWithFormat:@"%@%@", @"data:image/jpg;base64,", [imageData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
-            [resultDict setObject:encodedImage
-                           forKey:@"resultImage"];
+
+        if ([result isKindOfClass:[PPPdf417RecognizerResult class]]) {
+            PPPdf417RecognizerResult *pdf417Result = (PPPdf417RecognizerResult *)result;
+
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+            [self setDictionary:dict withPdf417Result:pdf417Result];
+
+            [resultArray addObject:dict];
         }
     }
     
-    [self finishWithScanningResults:@[[NSNull null], resultDict]];
+    if ([resultArray count] > 0) {
+        [resultDict setObject:resultArray forKey:kResultList];
+    }
+    
+    if (self.scannedImageDewarped) {
+        NSData *imageData = UIImageJPEGRepresentation(self.scannedImageDewarped, 0.9f);
+        NSString *encodedImage = [imageData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+        if (self.shouldReturnCroppedImage) {
+            [resultDict setObject:encodedImage
+                           forKey:kResultImageCropped];
+        }
+    }
 
+    if (self.scannedImageSuccesful) {
+        NSData *imageData = UIImageJPEGRepresentation(self.scannedImageSuccesful, 0.9f);
+        NSString *encodedImage = [imageData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+        if (self.shouldReturnSuccessfulImage) {
+            [resultDict setObject:encodedImage
+                           forKey:kResultImageSuccessful];
+        }
+    }
+
+    if (self.scannedImageFace) {
+        NSData *imageData = UIImageJPEGRepresentation(self.scannedImageFace, 0.9f);
+        NSString *encodedImage = [imageData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+        if (self.shouldReturnFaceImage) {
+            [resultDict setObject:encodedImage
+                           forKey:kResultImageFace];
+        }
+    }
+
+    [self finishWithScanningResults:resultDict];
 }
 
 - (void) reset {
-    self.callback = nil;
+    self.promiseResolve = nil;
+    self.promiseReject = nil;
     self.options = nil;
 }
 
@@ -362,11 +506,11 @@ RCT_EXPORT_METHOD(dismiss) {
     [[self getRootViewController] dismissViewControllerAnimated:YES completion:nil];
 }
 
-- (void) finishWithScanningResults:(NSArray*) results {
-    if (self.callback && results) {
-        self.callback(results);
+- (void) finishWithScanningResults:(NSDictionary*) results {
+    if (self.promiseResolve && results) {
+        self.promiseResolve(results);
     }
-        
+    
     [self dismissScanningView];
 }
 
@@ -393,12 +537,8 @@ RCT_EXPORT_METHOD(dismiss) {
     // images of MRTD documents. Dewarped images are returned to scanningViewController:didOutputMetadata: callback,
     // as PPImageMetadata objects with name @"MRTD"
     
-    if (self.shouldReturnCroppedDocument) {
-        mrtdRecognizerSettings.dewarpFullDocument = YES;
-    } else {
-        mrtdRecognizerSettings.dewarpFullDocument = NO;
-    }
-    
+    mrtdRecognizerSettings.dewarpFullDocument = self.shouldReturnCroppedImage;
+
     return mrtdRecognizerSettings;
 }
 
@@ -432,11 +572,7 @@ RCT_EXPORT_METHOD(dismiss) {
     // images of MRTD documents. Dewarped images are returned to scanningViewController:didOutputMetadata: callback,
     // as PPImageMetadata objects with name @"MRTD"
     
-    if (self.shouldReturnCroppedDocument) {
-        eudlRecognizerSettings.showFullDocument = YES;
-    } else {
-        eudlRecognizerSettings.showFullDocument = NO;
-    }
+    eudlRecognizerSettings.showFullDocument = self.shouldReturnCroppedImage;
     
     return eudlRecognizerSettings;
 }
@@ -460,31 +596,44 @@ RCT_EXPORT_METHOD(dismiss) {
      */
     usdlRecognizerSettings.allowNullQuietZone = YES;
     
-    /**
-     * Set this to YES if you want to scan 1D barcodes if they are present on the DL.
-     * If NO, just PDF417 barcode will be scanned.
-     */
-    usdlRecognizerSettings.scan1DCodes = NO;
-    
     return usdlRecognizerSettings;
 }
 
 - (PPDocumentFaceRecognizerSettings *)documentFaceRecognizerSettings {
-    
-    PPDocumentFaceRecognizerSettings *documentFaceReconizerSettings = [[PPDocumentFaceRecognizerSettings alloc] init];
+
+    PPDocumentFaceRecognizerSettings *documentFaceRecognizerSettings = [[PPDocumentFaceRecognizerSettings alloc] init];
     
     // This property is useful if you're at the same time obtaining Dewarped image metadata, since it allows you to obtain dewarped and
     // cropped
     // images of MRTD documents. Dewarped images are returned to scanningViewController:didOutputMetadata: callback,
     // as PPImageMetadata objects with name @"MRTD"
     
-    if (self.shouldReturnCroppedDocument) {
-        documentFaceReconizerSettings.returnFullDocument = YES;
-    } else {
-        documentFaceReconizerSettings.returnFullDocument = NO;
-    }
+    documentFaceRecognizerSettings.returnFaceImage = self.shouldReturnFaceImage;
+    documentFaceRecognizerSettings.returnFullDocument = self.shouldReturnCroppedImage;
     
-    return documentFaceReconizerSettings;
+    return documentFaceRecognizerSettings;
+}
+
+- (PPPdf417RecognizerSettings *)pdf417RecognizerSettings {
+
+    PPPdf417RecognizerSettings *pdf417RecognizerSettings = [[PPPdf417RecognizerSettings alloc] init];
+
+    /********* All recognizer settings are set to their default values. Change accordingly. *********/
+
+    /**
+     * Set this to YES to scan even barcode not compliant with standards
+     * For example, malformed PDF417 barcodes which were incorrectly encoded
+     * Use only if necessary because it slows down the recognition process
+     */
+    pdf417RecognizerSettings.scanUncertain = NO;
+
+    /**
+     * Set this to YES to scan barcodes which don't have quiet zone (white area) around it
+     * Disable if you need a slight speed boost
+     */
+    pdf417RecognizerSettings.allowNullQuietZone = YES;
+
+    return pdf417RecognizerSettings;
 }
 
 @end

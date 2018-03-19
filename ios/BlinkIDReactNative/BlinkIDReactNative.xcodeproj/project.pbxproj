@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		666AC6F11F196A4200994177 /* PPCustomIDCardOverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 666AC6F01F196A4200994177 /* PPCustomIDCardOverlayViewController.m */; };
+		66F42FC31FBA0D9800FB51A2 /* USDLFrontViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 66F42FC21FBA0D9800FB51A2 /* USDLFrontViewController.m */; };
+		66F4302D1FBA420F00FB51A2 /* USDLBackViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 66F4302C1FBA420F00FB51A2 /* USDLBackViewController.m */; };
 		A27CCA301E9E57A500BED675 /* BlinkIDReactNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = A27CCA2F1E9E57A500BED675 /* BlinkIDReactNative.mm */; };
 		A27CCA311E9E57A500BED675 /* BlinkIDReactNative.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = A27CCA2E1E9E57A500BED675 /* BlinkIDReactNative.h */; };
 		A27CCA401E9E5D8D00BED675 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A27CCA3A1E9E57CF00BED675 /* Accelerate.framework */; };
@@ -30,8 +31,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		666AC6EF1F196A4200994177 /* PPCustomIDCardOverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PPCustomIDCardOverlayViewController.h; sourceTree = "<group>"; };
-		666AC6F01F196A4200994177 /* PPCustomIDCardOverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PPCustomIDCardOverlayViewController.m; sourceTree = "<group>"; };
+		66B1A1F31FBB7E0900672D3F /* USDLFrontOverlay.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = USDLFrontOverlay.xib; sourceTree = "<group>"; };
+		66F42FC21FBA0D9800FB51A2 /* USDLFrontViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = USDLFrontViewController.m; sourceTree = "<group>"; };
+		66F42FC41FBA0DD600FB51A2 /* USDLFrontViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = USDLFrontViewController.h; sourceTree = "<group>"; };
+		66F4302C1FBA420F00FB51A2 /* USDLBackViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = USDLBackViewController.m; sourceTree = "<group>"; };
+		66F4302E1FBA423800FB51A2 /* USDLBackViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = USDLBackViewController.h; sourceTree = "<group>"; };
+		66F4302F1FBA429100FB51A2 /* USDLBackOverlay.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = USDLBackOverlay.xib; sourceTree = "<group>"; };
 		A27CCA2B1E9E57A500BED675 /* libBlinkIDReactNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBlinkIDReactNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		A27CCA2E1E9E57A500BED675 /* BlinkIDReactNative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlinkIDReactNative.h; sourceTree = "<group>"; };
 		A27CCA2F1E9E57A500BED675 /* BlinkIDReactNative.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = BlinkIDReactNative.mm; sourceTree = "<group>"; };
@@ -77,10 +82,14 @@
 		A27CCA2D1E9E57A500BED675 /* BlinkIDReactNative */ = {
 			isa = PBXGroup;
 			children = (
-				666AC6EF1F196A4200994177 /* PPCustomIDCardOverlayViewController.h */,
-				666AC6F01F196A4200994177 /* PPCustomIDCardOverlayViewController.m */,
 				A27CCA2E1E9E57A500BED675 /* BlinkIDReactNative.h */,
 				A27CCA2F1E9E57A500BED675 /* BlinkIDReactNative.mm */,
+				66F42FC21FBA0D9800FB51A2 /* USDLFrontViewController.m */,
+				66F42FC41FBA0DD600FB51A2 /* USDLFrontViewController.h */,
+				66F4302C1FBA420F00FB51A2 /* USDLBackViewController.m */,
+				66F4302E1FBA423800FB51A2 /* USDLBackViewController.h */,
+				66F4302F1FBA429100FB51A2 /* USDLBackOverlay.xib */,
+				66B1A1F31FBB7E0900672D3F /* USDLFrontOverlay.xib */,
 			);
 			path = BlinkIDReactNative;
 			sourceTree = "<group>";
@@ -123,7 +132,7 @@
 		A27CCA231E9E57A500BED675 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0830;
+				LastUpgradeCheck = 830;
 				ORGANIZATIONNAME = "Jura Skrlec";
 				TargetAttributes = {
 					A27CCA2A1E9E57A500BED675 = {
@@ -155,8 +164,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66F4302D1FBA420F00FB51A2 /* USDLBackViewController.m in Sources */,
+				66F42FC31FBA0D9800FB51A2 /* USDLFrontViewController.m in Sources */,
 				A27CCA301E9E57A500BED675 /* BlinkIDReactNative.mm in Sources */,
-				666AC6F11F196A4200994177 /* PPCustomIDCardOverlayViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,23 +269,19 @@
 				DEVELOPMENT_TEAM = CQTJWP89J7;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../../../../ios/**",
+					"$(SRCROOT)/../../../../../ios/**",
 					"$(PROJECT_DIR)",
 					"#import",
 					"<MicroBlink/MicroBlink.h>",
 					"$(SRCROOT)/../../../iOS/**",
 				);
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/../../../react-native/**",
-					"$(SRCROOT)/../../../react-native/React/**",
-					"$(SRCROOT)/../../../../ios",
-				);
+				HEADER_SEARCH_PATHS = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-liconv",
 					"-lc++",
+					"-lz",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -288,23 +294,19 @@
 				DEVELOPMENT_TEAM = CQTJWP89J7;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../../../../ios/**",
+					"$(SRCROOT)/../../../../../ios/**",
 					"$(PROJECT_DIR)",
 					"#import",
 					"<MicroBlink/MicroBlink.h>",
 					"$(SRCROOT)/../../../iOS/**",
 				);
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/../../../react-native/**",
-					"$(SRCROOT)/../../../react-native/React/**",
-					"$(SRCROOT)/../../../../ios",
-				);
+				HEADER_SEARCH_PATHS = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-liconv",
 					"-lc++",
+					"-lz",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
